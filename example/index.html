@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>RTC-SDK</title>
+	<style>
+		.btns {
+			padding: 15px
+		}
+
+		#btn-call,
+		#btn-end {
+			padding: 4px 14px;
+			background: transparent;
+			border-radius: 5px;
+		}
+
+		#btn-call {
+			color: blue;
+			border: 1px solid blue;
+		}
+
+		#btn-end {
+			color: red;
+			border: 1px solid red;
+
+		}
+
+		.local,
+		.remote {
+			padding: 15px;
+			border: 1px solid #ccc;
+		}
+
+		.local video,
+		.remote video {
+			width: 200px;
+			height: 200px;
+		}
+	</style>
+
+</head>
+
+<body>
+	<div id="container">
+		<div class="btns">
+			<button id="btn-call">呼叫</button>
+			<button id="btn-end">挂断</button>
+			<p>
+				<span>状态：</span><span id="status"></span>
+			</p>
+		</div>
+
+		<div>
+			<div class="local">
+				<h2>本地端音频/视频</h2>
+				<audio id="local-audio" controls autoplay></audio>
+				<video id="local-video" controls autoplay playsinline></video>
+			</div>
+			<br>
+			<br>
+			<div class="remote">
+				<h2>远程端音频/视频</h2>
+				<audio id="remote-audio" controls autoplay></audio>
+				<video id="remote-video" controls autoplay playsinline></video>
+			</div>
+		</div>
+
+
+		<div>
+			<span id="errorMsg"></span>
+		</div>
+
+
+	</div>
+
+	<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+	<script src="./rtc-sdk.js"></script>
+	<script>
+		const $localVideo = document.getElementById('local-video');
+		const $localAudio = document.getElementById('local-audio');
+		const $remoteVideo = document.getElementById('remote-video');
+		const $remoteAudio = document.getElementById('remote-audio');
+		const $status = document.getElementById('status');
+
+		const mediaConfig = {
+			audio: true, // 启用音频媒体
+			video: true, // 启用视频媒体
+		}
+
+		const offerOptions = {
+			offerToReceiveVideo: 1,
+		}
+
+		let rtc = new RTCSDK({
+			mediaConfig,
+			offerOptions,
+			onLocalStreamSuccess: (localStream) => {
+				$localVideo.srcObject = localStream;
+				$localAudio.srcObject = localStream;
+			},
+			onGotRemoteStream: (remoteStream) => {
+				$remoteVideo.srcObject = remoteStream;
+				$remoteAudio.srcObject = remoteStream;
+			},
+			onStatusChange: () => {
+				const statusText = rtc.rtcStatusInstance.getStatusText();
+				if (statusText) {
+					$status.innerHTML = statusText;
+				}
+			}
+		})
+
+		$status.innerHTML = '初始化完成，可拨打。'
+
+		document.getElementById('btn-call').onclick = () => {
+			console.log('rtcStatusInstance:', rtc.rtcStatusInstance);
+			rtc.call();
+		}
+
+		document.getElementById('btn-end').onclick = () => {
+			if (!rtc) {
+				return;
+			}
+			rtc.destroy();
+		};
+
+	</script>
+
+</body>
+
+</html>
